@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ interface MatchCardProps {
 }
 
 const MatchCard = ({ team1, team2, time, venue, status, prize }: MatchCardProps) => {
+  const navigate = useNavigate();
+  
   const statusColors = {
     live: "bg-destructive text-destructive-foreground animate-pulse",
     upcoming: "bg-secondary text-secondary-foreground",
@@ -91,7 +94,12 @@ const MatchCard = ({ team1, team2, time, venue, status, prize }: MatchCardProps)
             <Button variant="default" className="w-full" size="lg">
               View Results
             </Button>
-            <Button variant="outline" className="w-full gap-2" size="lg">
+            <Button 
+              variant="outline" 
+              className="w-full gap-2" 
+              size="lg"
+              onClick={() => navigate("/leaderboard")}
+            >
               <Trophy className="w-4 h-4" />
               Leaderboard
             </Button>
