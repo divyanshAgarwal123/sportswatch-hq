@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Trophy } from "lucide-react";
 
 interface Team {
   name: string;
@@ -85,14 +85,26 @@ const MatchCard = ({ team1, team2, time, venue, status, prize }: MatchCardProps)
           </div>
         </div>
 
-        {/* Action Button */}
-        <Button 
-          variant={status === "live" ? "premium" : "default"} 
-          className="w-full"
-          size="lg"
-        >
-          {status === "live" ? "Join Now" : status === "upcoming" ? "Create Team" : "View Results"}
-        </Button>
+        {/* Action Buttons */}
+        {status === "completed" ? (
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="default" className="w-full" size="lg">
+              View Results
+            </Button>
+            <Button variant="outline" className="w-full gap-2" size="lg">
+              <Trophy className="w-4 h-4" />
+              Leaderboard
+            </Button>
+          </div>
+        ) : (
+          <Button 
+            variant={status === "live" ? "premium" : "default"} 
+            className="w-full"
+            size="lg"
+          >
+            {status === "live" ? "Join Now" : "Create Team"}
+          </Button>
+        )}
       </div>
     </Card>
   );
