@@ -60,31 +60,31 @@ const Dashboard = () => {
 
   const liveMatches = [
     {
-      team1: { name: "Mumbai Tigers", logo: "🐅", score: 185 },
-      team2: { name: "Delhi Warriors", logo: "⚔️", score: 142 },
-      time: "Live Now",
-      venue: "Wankhede Stadium",
+      team1: { name: "India", logo: "🇮🇳", score: 287 },
+      team2: { name: "Australia", logo: "🇦🇺", score: 245 },
+      time: "Live Now - Day 3",
+      venue: "Melbourne Cricket Ground",
       status: "live" as const,
-      prize: "$10,000",
+      prize: "$100,000",
     },
   ];
 
   const upcomingMatches = [
     {
-      team1: { name: "Chennai Knights", logo: "🛡️" },
-      team2: { name: "Kolkata Kings", logo: "👑" },
-      time: "8:00 PM Today",
-      venue: "Eden Gardens",
+      team1: { name: "England", logo: "🏴󐁧󐁢󐁥󐁮󐁧󐁿" },
+      team2: { name: "Pakistan", logo: "🇵🇰" },
+      time: "Tomorrow 2:00 PM",
+      venue: "Lord's Cricket Ground",
       status: "upcoming" as const,
-      prize: "$15,000",
+      prize: "$85,000",
     },
     {
-      team1: { name: "Bangalore Bulls", logo: "🐂" },
-      team2: { name: "Hyderabad Hawks", logo: "🦅" },
-      time: "Tomorrow 3:00 PM",
-      venue: "Chinnaswamy Stadium",
+      team1: { name: "New Zealand", logo: "🇳🇿" },
+      team2: { name: "South Africa", logo: "🇿🇦" },
+      time: "Dec 5, 10:00 AM",
+      venue: "Eden Park, Auckland",
       status: "upcoming" as const,
-      prize: "$12,000",
+      prize: "$75,000",
     },
   ];
 

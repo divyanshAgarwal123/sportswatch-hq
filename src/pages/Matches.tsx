@@ -3,68 +3,69 @@ import MatchCard from "@/components/MatchCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Matches = () => {
+  // Real cricket matches with actual team names
   const liveMatches = [
     {
-      team1: { name: "Mumbai Tigers", logo: "🐅", score: 185 },
-      team2: { name: "Delhi Warriors", logo: "⚔️", score: 142 },
-      time: "Live Now",
-      venue: "Wankhede Stadium",
+      team1: { name: "India", logo: "🇮🇳", score: 287 },
+      team2: { name: "Australia", logo: "🇦🇺", score: 245 },
+      time: "Live Now - Day 3",
+      venue: "Melbourne Cricket Ground",
       status: "live" as const,
-      prize: "$10,000",
+      prize: "$100,000",
     },
     {
-      team1: { name: "Punjab Strikers", logo: "⚡" },
-      team2: { name: "Rajasthan Royals", logo: "👑" },
-      time: "Live Now",
-      venue: "PCA Stadium",
+      team1: { name: "England", logo: "🏴󐁧󐁢󐁥󐁮󐁧󐁿", score: 312 },
+      team2: { name: "Pakistan", logo: "🇵🇰", score: 298 },
+      time: "Live Now - 2nd Innings",
+      venue: "Lord's Cricket Ground",
       status: "live" as const,
-      prize: "$8,000",
+      prize: "$85,000",
     },
   ];
 
   const upcomingMatches = [
     {
-      team1: { name: "Chennai Knights", logo: "🛡️" },
-      team2: { name: "Kolkata Kings", logo: "👑" },
-      time: "8:00 PM Today",
-      venue: "Eden Gardens",
+      team1: { name: "New Zealand", logo: "🇳🇿" },
+      team2: { name: "South Africa", logo: "🇿🇦" },
+      time: "Tomorrow 2:00 PM",
+      venue: "Eden Park, Auckland",
       status: "upcoming" as const,
-      prize: "$15,000",
+      prize: "$75,000",
     },
     {
-      team1: { name: "Bangalore Bulls", logo: "🐂" },
-      team2: { name: "Hyderabad Hawks", logo: "🦅" },
-      time: "Tomorrow 3:00 PM",
-      venue: "Chinnaswamy Stadium",
+      team1: { name: "West Indies", logo: "🏝️" },
+      team2: { name: "Sri Lanka", logo: "🇱🇰" },
+      time: "Dec 5, 10:00 AM",
+      venue: "Kensington Oval",
       status: "upcoming" as const,
-      prize: "$12,000",
+      prize: "$65,000",
     },
     {
-      team1: { name: "Gujarat Giants", logo: "🦁" },
-      team2: { name: "Lucknow Lions", logo: "🦁" },
-      time: "Tomorrow 7:00 PM",
-      venue: "Narendra Modi Stadium",
+      team1: { name: "Bangladesh", logo: "🇧🇩" },
+      team2: { name: "Afghanistan", logo: "🇦🇫" },
+      time: "Dec 7, 3:30 PM",
+      venue: "Shere Bangla Stadium",
       status: "upcoming" as const,
-      prize: "$20,000",
+      prize: "$50,000",
     },
   ];
 
   const completedMatches = [
     {
-      team1: { name: "Chennai Knights", logo: "🛡️", score: 195 },
-      team2: { name: "Mumbai Tigers", logo: "🐅", score: 188 },
-      time: "Yesterday",
-      venue: "MA Chidambaram",
+      team1: { name: "India", logo: "🇮🇳", score: 356 },
+      team2: { name: "England", logo: "🏴󐁧󐁢󐁥󐁮󐁧󐁿", score: 287 },
+      time: "Completed - India won by 69 runs",
+      venue: "Wankhede Stadium",
       status: "completed" as const,
-      prize: "$10,000",
+      prize: "$120,000",
     },
     {
-      team1: { name: "Delhi Warriors", logo: "⚔️", score: 176 },
-      team2: { name: "Kolkata Kings", logo: "👑", score: 180 },
-      time: "2 days ago",
-      venue: "Arun Jaitley Stadium",
+      team1: { name: "Australia", logo: "🇦🇺", score: 298 },
+      team2: { name: "South Africa", logo: "🇿🇦", score: 265 },
+      time: "Completed - Australia won by 33 runs",
+      venue: "Sydney Cricket Ground",
       status: "completed" as const,
-      prize: "$12,000",
+      prize: "$95,000",
     },
   ];
 
