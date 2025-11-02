@@ -109,6 +109,7 @@ const MatchCard = ({ team1, team2, time, venue, status, prize }: MatchCardProps)
             variant={status === "live" ? "premium" : "default"} 
             className="w-full"
             size="lg"
+            onClick={() => navigate(`/match/${team1.name}-vs-${team2.name}`)}
           >
             {status === "live" ? "Join Now" : "Create Team"}
           </Button>
