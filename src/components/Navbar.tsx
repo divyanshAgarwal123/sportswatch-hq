@@ -1,11 +1,28 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Trophy, Menu } from "lucide-react";
-import { useState } from "react";
+import { Trophy, Menu, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -42,11 +59,20 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <Link to="/auth">
-              <Button variant="hero" size="sm">
-                Login / Sign Up
-              </Button>
-            </Link>
+            {session ? (
+              <Link to="/profile">
+                <Button variant="hero" size="sm" className="gap-2">
+                  <User className="w-4 h-4" />
+                  Profile
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button variant="hero" size="sm">
+                  Login / Sign Up
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -77,11 +103,20 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="hero" size="sm" className="w-full">
-                Login / Sign Up
-              </Button>
-            </Link>
+            {session ? (
+              <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="hero" size="sm" className="w-full gap-2">
+                  <User className="w-4 h-4" />
+                  Profile
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="hero" size="sm" className="w-full">
+                  Login / Sign Up
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}
