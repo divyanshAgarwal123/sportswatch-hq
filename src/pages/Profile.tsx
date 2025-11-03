@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Trophy, Target, TrendingUp, Users, LogOut, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import StatsCard from "@/components/StatsCard";
@@ -18,6 +19,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
+  const [tokens, setTokens] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -31,6 +33,7 @@ const Profile = () => {
         } else {
           setUsername(session.user?.user_metadata?.username || "");
           setFullName(session.user?.user_metadata?.full_name || "");
+          fetchUserTokens(session.user.id);
         }
       }
     );
@@ -42,12 +45,22 @@ const Profile = () => {
       } else {
         setUsername(session.user?.user_metadata?.username || "");
         setFullName(session.user?.user_metadata?.full_name || "");
+        fetchUserTokens(session.user.id);
       }
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchUserTokens = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("tokens")
+      .eq("id", userId)
+      .single();
+    if (data) setTokens(data.tokens);
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -130,9 +143,23 @@ const Profile = () => {
                   {fullName || username || "User"}
                 </h1>
                 <p className="text-muted-foreground mb-1">{session?.user?.email}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mb-4">
                   Member since {new Date(session?.user?.created_at || "").toLocaleDateString()}
                 </p>
+                
+                {/* Free Credits Display */}
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-accent/20 px-4 py-2 rounded-lg border border-primary/30">
+                  <Trophy className="w-5 h-5 text-primary" />
+                  <div className="text-left">
+                    <div className="text-xs text-muted-foreground">Available Credits</div>
+                    <div className="text-2xl font-bold text-primary">{tokens}</div>
+                  </div>
+                  {tokens >= 100 && (
+                    <Badge className="bg-accent/20 text-accent border-accent/30">
+                      Free Signup Bonus!
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-2">

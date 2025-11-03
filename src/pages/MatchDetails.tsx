@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,25 @@ const MatchDetails = () => {
   const { matchId } = useParams();
   const navigate = useNavigate();
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
+  const [userTokens, setUserTokens] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const ENTRY_FEE = 50; // Credits required to join match
+
+  useEffect(() => {
+    fetchUserTokens();
+  }, []);
+
+  const fetchUserTokens = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("tokens")
+        .eq("id", user.id)
+        .single();
+      if (data) setUserTokens(data.tokens);
+    }
+  };
 
   // Real cricket players data
   const matchData = {
@@ -94,7 +114,7 @@ const MatchDetails = () => {
   const totalCredits = selectedPlayers.reduce((sum, p) => sum + p.credits, 0);
   const maxCredits = 100;
 
-  const handleJoinMatch = () => {
+  const handleJoinMatch = async () => {
     if (selectedPlayers.length !== 11) {
       toast.error("Please select exactly 11 players");
       return;
@@ -103,8 +123,73 @@ const MatchDetails = () => {
       toast.error(`Credits exceed limit (${totalCredits.toFixed(1)}/${maxCredits})`);
       return;
     }
-    toast.success("Successfully joined the match!");
-    navigate("/dashboard");
+    if (userTokens < ENTRY_FEE) {
+      toast.error(`Insufficient tokens! You need ${ENTRY_FEE} tokens but have ${userTokens}`);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please login to join match");
+        navigate("/auth");
+        return;
+      }
+
+      // Deduct entry fee
+      const { data: deductResult, error: deductError } = await supabase.rpc(
+        "deduct_tokens_for_team",
+        { _user_id: user.id, _amount: ENTRY_FEE }
+      );
+
+      if (deductError || !deductResult) {
+        toast.error("Failed to deduct tokens. Please try again.");
+        return;
+      }
+
+      // Create team for this match
+      const { data: team, error: teamError } = await supabase
+        .from("teams")
+        .insert({
+          user_id: user.id,
+          team_name: `Team for ${matchId}`,
+          match_id: matchId || "match-1",
+        })
+        .select()
+        .single();
+
+      if (teamError) {
+        // Refund tokens if team creation fails
+        await supabase.rpc("add_tokens", { _user_id: user.id, _amount: ENTRY_FEE });
+        toast.error("Failed to join match. Please try again.");
+        return;
+      }
+
+      // Add players to team
+      const teamPlayers = selectedPlayers.map(player => ({
+        team_id: team.id,
+        player_name: player.name,
+        player_role: player.role,
+        points: 0,
+      }));
+
+      const { error: playersError } = await supabase
+        .from("team_players")
+        .insert(teamPlayers);
+
+      if (playersError) {
+        toast.error("Failed to add players. Please try again.");
+        return;
+      }
+
+      toast.success(`Successfully joined the match! ${ENTRY_FEE} tokens deducted.`);
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const TeamAnalytics = ({ team }: { team: TeamStats }) => (
@@ -211,11 +296,18 @@ const MatchDetails = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Match Header */}
         <Card className="p-6 mb-6 bg-gradient-to-br from-primary/10 via-card to-secondary/10">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
             <Badge className="bg-destructive text-destructive-foreground animate-pulse">
               🔴 LIVE NOW
             </Badge>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg">
+              <Trophy className="w-5 h-5 text-primary" />
+              <div>
+                <div className="text-xs text-muted-foreground">Your Tokens</div>
+                <div className="text-xl font-bold text-primary">{userTokens}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
                 <span>{matchData.time}</span>
@@ -224,9 +316,13 @@ const MatchDetails = () => {
                 <MapPin className="w-4 h-4" />
                 <span>{matchData.venue}</span>
               </div>
+              <div className="flex items-center gap-1 bg-accent/20 px-3 py-1 rounded">
+                <Trophy className="w-4 h-4 text-accent" />
+                <span className="text-accent font-semibold">Entry: {ENTRY_FEE} tokens</span>
+              </div>
               <div className="flex items-center gap-1">
                 <Trophy className="w-4 h-4 text-accent" />
-                <span className="text-accent font-semibold">{matchData.prize}</span>
+                <span className="text-accent font-semibold">Prize: {matchData.prize}</span>
               </div>
             </div>
           </div>
@@ -265,11 +361,15 @@ const MatchDetails = () => {
               <Button
                 size="lg"
                 onClick={handleJoinMatch}
-                disabled={selectedPlayers.length !== 11 || totalCredits > maxCredits}
+                disabled={loading || selectedPlayers.length !== 11 || totalCredits > maxCredits || userTokens < ENTRY_FEE}
                 className="gap-2"
               >
-                <Trophy className="w-4 h-4" />
-                Join Match
+                {loading ? "Joining..." : (
+                  <>
+                    <Trophy className="w-4 h-4" />
+                    Join Match ({ENTRY_FEE} tokens)
+                  </>
+                )}
               </Button>
             </div>
             {selectedPlayers.length > 0 && (
