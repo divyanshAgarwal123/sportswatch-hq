@@ -29,6 +29,7 @@ const Navbar = () => {
     { name: "Dashboard", path: "/dashboard" },
     { name: "Matches", path: "/matches" },
     { name: "Create Team", path: "/create-team" },
+    { name: "Rewards", path: "/rewards" },
     { name: "Leaderboard", path: "/leaderboard" },
   ];
 

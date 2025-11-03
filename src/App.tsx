@@ -12,6 +12,7 @@ import Leaderboard from "./pages/Leaderboard";
 import MatchDetails from "./pages/MatchDetails";
 import Profile from "./pages/Profile";
 import CreateTeam from "./pages/CreateTeam";
+import Rewards from "./pages/Rewards";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/create-team" element={<CreateTeam />} />
+          <Route path="/rewards" element={<Rewards />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
