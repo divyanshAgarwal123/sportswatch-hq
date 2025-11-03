@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, Users, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,11 +15,13 @@ interface Player {
   total_points: number;
   wins: number;
   matches_played: number;
+  tokens: number;
 }
 
 const Leaderboard = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [totalPlayers, setTotalPlayers] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -27,65 +29,52 @@ const Leaderboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
+      // Allow viewing leaderboard without authentication
+      if (session) {
+        setCurrentUserId(session.user.id);
       }
-      setCurrentUserId(session.user.id);
       await fetchLeaderboard();
     };
 
     checkAuth();
-  }, [navigate]);
+  }, []);
 
   const fetchLeaderboard = async () => {
     try {
+      // Get total count
+      const { count } = await supabase
+        .from("profiles")
+        .select("*", { count: 'exact', head: true });
+      
+      setTotalPlayers(count || 0);
+
+      // Fetch top players
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, avatar_url, total_points, wins, matches_played, tokens")
         .order("total_points", { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (error) throw error;
 
       if (data && data.length > 0) {
         setPlayers(data);
       } else {
-        // Generate mock data if no players exist
-        const mockPlayers = generateMockPlayers();
-        setPlayers(mockPlayers);
+        // No players yet
+        setPlayers([]);
       }
     } catch (error: any) {
       console.error("Error fetching leaderboard:", error);
       toast({
         title: "Error loading leaderboard",
-        description: "Showing sample data instead",
+        description: error.message,
         variant: "destructive",
       });
-      const mockPlayers = generateMockPlayers();
-      setPlayers(mockPlayers);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateMockPlayers = (): Player[] => {
-    const names = [
-      "CricketKing", "BattingMaster", "BowlingLegend", "FieldingPro",
-      "PowerHitter", "SpinWizard", "FastBowler", "AllRounder",
-      "CaptainCool", "MatchWinner", "BoundaryHunter", "WicketTaker",
-      "RunMachine", "SixHitter", "DeathBowler", "OpenerChamp"
-    ];
-
-    return names.map((name, index) => ({
-      id: `mock-${index}`,
-      username: name,
-      avatar_url: null,
-      total_points: Math.floor(Math.random() * 5000) + 1000,
-      wins: Math.floor(Math.random() * 50) + 5,
-      matches_played: Math.floor(Math.random() * 100) + 20,
-    })).sort((a, b) => b.total_points - a.total_points);
-  };
 
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Trophy className="w-6 h-6 text-yellow-500" />;
@@ -118,18 +107,49 @@ const Leaderboard = () => {
       
       <div className="pt-24 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Leaderboard
+              Global Leaderboard
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-muted-foreground mb-6">
               Top players competing for glory
             </p>
+            
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
+              <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10">
+                <div className="flex items-center justify-center gap-3">
+                  <Users className="w-8 h-8 text-primary" />
+                  <div className="text-left">
+                    <div className="text-3xl font-bold text-foreground">{totalPlayers}</div>
+                    <div className="text-sm text-muted-foreground">Total Players</div>
+                  </div>
+                </div>
+              </Card>
+              
+              <Card className="p-6 bg-gradient-to-br from-accent/10 to-primary/10">
+                <div className="flex items-center justify-center gap-3">
+                  <Trophy className="w-8 h-8 text-accent" />
+                  <div className="text-left">
+                    <div className="text-3xl font-bold text-foreground">
+                      {players.length > 0 ? players[0].total_points.toLocaleString() : 0}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Top Score</div>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
 
-          <Card className="overflow-hidden border-border bg-card">
-            <div className="divide-y divide-border">
-              {players.map((player, index) => {
+          {players.length === 0 ? (
+            <Card className="p-12 text-center">
+              <Trophy className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">No Players Yet</h3>
+              <p className="text-muted-foreground">Be the first to join and compete!</p>
+            </Card>
+          ) : (
+            <Card className="overflow-hidden border-border bg-card">
+              <div className="divide-y divide-border">{players.map((player, index) => {
                 const rank = index + 1;
                 const isCurrentUser = player.id === currentUserId;
 
@@ -175,19 +195,30 @@ const Leaderboard = () => {
                         </p>
                       </div>
 
-                      {/* Points */}
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-primary">
-                          {player.total_points.toLocaleString()}
+                      {/* Stats */}
+                      <div className="flex gap-6 items-center">
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-primary">
+                            {player.total_points.toLocaleString()}
+                          </div>
+                          <div className="text-xs text-muted-foreground">points</div>
                         </div>
-                        <div className="text-xs text-muted-foreground">points</div>
+                        
+                        <div className="text-right bg-accent/10 px-3 py-2 rounded-lg">
+                          <div className="flex items-center gap-1 text-accent font-bold text-lg">
+                            <Coins className="w-4 h-4" />
+                            {player.tokens}
+                          </div>
+                          <div className="text-xs text-muted-foreground">tokens</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 );
               })}
-            </div>
-          </Card>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </div>
