@@ -58,10 +58,10 @@ const CreateTeam = () => {
     if (selectedPlayers.find(p => p.name === player.name)) {
       setSelectedPlayers(selectedPlayers.filter(p => p.name !== player.name));
     } else {
-      if (selectedPlayers.length >= 11) {
+      if (selectedPlayers.length >= 8) {
         toast({
           title: "Team Full",
-          description: "You can only select 11 players",
+          description: "You can only select up to 8 players",
           variant: "destructive",
         });
         return;
@@ -80,10 +80,10 @@ const CreateTeam = () => {
       return;
     }
 
-    if (selectedPlayers.length !== 11) {
+    if (selectedPlayers.length < 1 || selectedPlayers.length > 8) {
       toast({
-        title: "Select 11 Players",
-        description: "You must select exactly 11 players",
+        title: "Invalid Team Size",
+        description: "You must select between 1 and 8 players",
         variant: "destructive",
       });
       return;
@@ -173,7 +173,7 @@ const CreateTeam = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-4xl font-bold mb-2">Create Your Team</h1>
-              <p className="text-muted-foreground">Select 11 players to build your fantasy team</p>
+              <p className="text-muted-foreground">Select up to 8 players to build your fantasy team</p>
             </div>
             <Card className="p-4 bg-primary/10">
               <div className="text-center">
@@ -258,7 +258,7 @@ const CreateTeam = () => {
                 <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Players Selected:</span>
-                    <span className="font-semibold">{selectedPlayers.length}/11</span>
+                    <span className="font-semibold">{selectedPlayers.length}/8</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Total Cost:</span>
@@ -273,11 +273,12 @@ const CreateTeam = () => {
                 </div>
 
                 <Button
+                  variant="hero"
                   className="w-full mt-6"
                   onClick={handleCreateTeam}
-                  disabled={loading || selectedPlayers.length !== 11 || !canAfford || !teamName.trim()}
+                  disabled={loading || selectedPlayers.length < 1 || selectedPlayers.length > 8 || !canAfford || !teamName.trim()}
                 >
-                  {loading ? "Creating..." : "Create Team"}
+                  {loading ? "Creating..." : `Create Team (${totalCost} tokens)`}
                 </Button>
               </Card>
             </div>
