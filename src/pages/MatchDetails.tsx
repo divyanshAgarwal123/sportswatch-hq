@@ -345,7 +345,7 @@ const MatchDetails = () => {
 
           {/* Team Selection Summary */}
           <Card className="p-4 bg-card/50">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <div className="text-sm text-muted-foreground">Selected Players</div>
                 <div className="text-2xl font-bold text-foreground">
@@ -360,6 +360,7 @@ const MatchDetails = () => {
               </div>
               <Button
                 size="lg"
+                variant="hero"
                 onClick={handleJoinMatch}
                 disabled={loading || selectedPlayers.length !== 11 || totalCredits > maxCredits || userTokens < ENTRY_FEE}
                 className="gap-2"
@@ -367,16 +368,39 @@ const MatchDetails = () => {
                 {loading ? "Joining..." : (
                   <>
                     <Trophy className="w-4 h-4" />
-                    Join Match ({ENTRY_FEE} tokens)
+                    Join Match - {ENTRY_FEE} Tokens
                   </>
                 )}
               </Button>
             </div>
+            
+            {/* Selected Players List */}
             {selectedPlayers.length > 0 && (
-              <Progress 
-                value={(selectedPlayers.length / 11) * 100} 
-                className="mt-4 h-2"
-              />
+              <>
+                <Progress 
+                  value={(selectedPlayers.length / 11) * 100} 
+                  className="mt-4 h-2"
+                />
+                <div className="mt-4 pt-4 border-t border-border">
+                  <h4 className="text-sm font-semibold text-foreground mb-3">Your Selected Team:</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    {selectedPlayers.map((player) => (
+                      <div
+                        key={player.id}
+                        className="flex items-center justify-between bg-primary/10 px-3 py-2 rounded-lg border border-primary/20"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-foreground text-sm">{player.name}</div>
+                          <div className="text-xs text-muted-foreground">{player.role}</div>
+                        </div>
+                        <div className="text-right ml-2">
+                          <div className="text-xs font-semibold text-primary">{player.credits} cr</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
           </Card>
         </Card>
