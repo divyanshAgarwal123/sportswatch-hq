@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Target, TrendingUp, Users, LogOut, Edit } from "lucide-react";
+import { Trophy, Target, TrendingUp, Users, LogOut, Edit, CreditCard, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import StatsCard from "@/components/StatsCard";
 
@@ -21,6 +22,8 @@ const Profile = () => {
   const [fullName, setFullName] = useState("");
   const [tokens, setTokens] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -96,6 +99,21 @@ const Profile = () => {
     }
   };
 
+  const handlePurchaseTokens = () => {
+    toast({
+      title: "Payment Processing",
+      description: "This will integrate with payment gateway soon!",
+    });
+    setIsDialogOpen(false);
+  };
+
+  const tokenPackages = [
+    { amount: 100, price: 9.99, bonus: 0 },
+    { amount: 500, price: 44.99, bonus: 50, popular: true },
+    { amount: 1000, price: 84.99, bonus: 150 },
+    { amount: 2500, price: 199.99, bonus: 500 },
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -154,28 +172,136 @@ const Profile = () => {
                     <div className="text-xs text-muted-foreground">Available Credits</div>
                     <div className="text-2xl font-bold text-primary">{tokens}</div>
                   </div>
-                  {tokens >= 100 && (
-                    <Badge className="bg-accent/20 text-accent border-accent/30">
-                      Free Signup Bonus!
-                    </Badge>
-                  )}
-                </div>
+                {tokens >= 100 && (
+                  <Badge className="bg-accent/20 text-accent border-accent/30">
+                    Free Signup Bonus!
+                  </Badge>
+                )}
               </div>
+            </div>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="gap-2"
-                >
-                  <Edit className="w-4 h-4" />
-                  {isEditing ? "Cancel" : "Edit Profile"}
-                </Button>
-                <Button variant="outline" onClick={handleLogout} className="gap-2">
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </Button>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="hero" className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Buy Tokens
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl">Buy Tokens</DialogTitle>
+                    <DialogDescription>
+                      Choose a package to add tokens to your account
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    {tokenPackages.map((pkg, idx) => (
+                      <Card
+                        key={idx}
+                        className={`p-6 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                          selectedPackage === idx
+                            ? "border-primary bg-primary/10"
+                            : "border-border"
+                        } ${pkg.popular ? "ring-2 ring-primary" : ""}`}
+                        onClick={() => setSelectedPackage(idx)}
+                      >
+                        {pkg.popular && (
+                          <Badge className="mb-2 bg-primary text-primary-foreground">
+                            Most Popular
+                          </Badge>
+                        )}
+                        <div className="text-center">
+                          <div className="text-4xl font-bold text-foreground mb-2">
+                            {pkg.amount}
+                            {pkg.bonus > 0 && (
+                              <span className="text-secondary text-2xl ml-2">+{pkg.bonus}</span>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground mb-4">Tokens</div>
+                          <div className="text-3xl font-bold text-primary mb-2">
+                            ${pkg.price}
+                          </div>
+                          {pkg.bonus > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {pkg.bonus} Bonus Tokens
+                            </Badge>
+                          )}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
+                    <div className="space-y-4">
+                      <Card className="p-4 border-primary bg-primary/5">
+                        <div className="flex items-center gap-3">
+                          <CreditCard className="w-6 h-6 text-primary" />
+                          <div className="flex-1">
+                            <div className="font-semibold text-foreground">Credit/Debit Card</div>
+                            <div className="text-sm text-muted-foreground">
+                              Visa, Mastercard, Amex accepted
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+
+                      <div className="space-y-3 pt-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="cardNumber">Card Number</Label>
+                          <Input
+                            id="cardNumber"
+                            placeholder="1234 5678 9012 3456"
+                            className="font-mono"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label htmlFor="expiry">Expiry Date</Label>
+                            <Input id="expiry" placeholder="MM/YY" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="cvv">CVV</Label>
+                            <Input id="cvv" placeholder="123" maxLength={3} />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cardName">Cardholder Name</Label>
+                          <Input id="cardName" placeholder="John Doe" />
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={handlePurchaseTokens}
+                        disabled={selectedPackage === null}
+                        variant="hero"
+                        size="lg"
+                        className="w-full mt-4"
+                      >
+                        {selectedPackage !== null
+                          ? `Purchase ${tokenPackages[selectedPackage].amount + tokenPackages[selectedPackage].bonus} Tokens for $${tokenPackages[selectedPackage].price}`
+                          : "Select a Package"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(!isEditing)}
+                className="gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                {isEditing ? "Cancel" : "Edit Profile"}
+              </Button>
+              <Button variant="outline" onClick={handleLogout} className="gap-2">
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </div>
             </div>
           </Card>
 
