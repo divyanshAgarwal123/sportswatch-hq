@@ -11,6 +11,7 @@ import Matches from "./pages/Matches";
 import Leaderboard from "./pages/Leaderboard";
 import MatchDetails from "./pages/MatchDetails";
 import Profile from "./pages/Profile";
+import CreateTeam from "./pages/CreateTeam";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/match/:matchId" element={<MatchDetails />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/create-team" element={<CreateTeam />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

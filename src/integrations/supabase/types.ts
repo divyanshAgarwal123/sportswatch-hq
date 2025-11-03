@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           id: string
           matches_played: number
+          tokens: number
           total_points: number
           updated_at: string
           username: string
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string
           id: string
           matches_played?: number
+          tokens?: number
           total_points?: number
           updated_at?: string
           username: string
@@ -40,6 +42,7 @@ export type Database = {
           created_at?: string
           id?: string
           matches_played?: number
+          tokens?: number
           total_points?: number
           updated_at?: string
           username?: string
@@ -47,12 +50,103 @@ export type Database = {
         }
         Relationships: []
       }
+      team_players: {
+        Row: {
+          created_at: string
+          id: string
+          player_name: string
+          player_role: string
+          points: number
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_name: string
+          player_role: string
+          points?: number
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_name?: string
+          player_role?: string
+          points?: number
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          team_name: string
+          total_score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          team_name: string
+          total_score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          team_name?: string
+          total_score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_tokens: {
+        Args: { _amount: number; _user_id: string }
+        Returns: undefined
+      }
+      deduct_tokens_for_team: {
+        Args: { _amount: number; _user_id: string }
+        Returns: boolean
+      }
+      get_user_teams: {
+        Args: { _user_id: string }
+        Returns: {
+          created_at: string
+          match_id: string
+          player_count: number
+          team_id: string
+          team_name: string
+          total_score: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
