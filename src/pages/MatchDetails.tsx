@@ -34,7 +34,7 @@ const MatchDetails = () => {
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
   const [userTokens, setUserTokens] = useState(0);
   const [loading, setLoading] = useState(false);
-  const ENTRY_FEE = 50; // Credits required to join match
+  const ENTRY_FEE = 1; // Credits required to join match
 
   useEffect(() => {
     fetchUserTokens();
