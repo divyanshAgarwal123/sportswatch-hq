@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Clock, MapPin, Trophy, TrendingUp, Target, Zap, Users } from "lucide-react";
+import { Clock, MapPin, Trophy, TrendingUp, Target, Zap, Users, BarChart3, Activity } from "lucide-react";
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
 interface Player {
   id: string;
@@ -34,6 +35,8 @@ const MatchDetails = () => {
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
   const [userTokens, setUserTokens] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
+  const [teamId, setTeamId] = useState<string | null>(null);
   const ENTRY_FEE = 1; // Credits required to join match
 
   useEffect(() => {
@@ -183,8 +186,10 @@ const MatchDetails = () => {
         return;
       }
 
-      toast.success(`Successfully joined the match! ${ENTRY_FEE} tokens deducted.`);
-      navigate("/dashboard");
+      toast.success(`Successfully joined the match! ${ENTRY_FEE} token deducted.`);
+      setHasJoined(true);
+      setTeamId(team.id);
+      await fetchUserTokens(); // Refresh token balance
     } catch (error: any) {
       toast.error(error.message || "An error occurred");
     } finally {
@@ -288,6 +293,161 @@ const MatchDetails = () => {
       </div>
     </div>
   );
+
+  // Player Analysis Component
+  const PlayerAnalysis = () => {
+    const playerPerformanceData = selectedPlayers.map(player => ({
+      name: player.name.split(' ').pop(), // Last name for readability
+      points: player.points,
+      credits: player.credits * 20, // Scale for visibility
+      value: (player.points / player.credits).toFixed(1),
+    }));
+
+    const roleDistribution = selectedPlayers.reduce((acc, player) => {
+      acc[player.role] = (acc[player.role] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const roleData = Object.entries(roleDistribution).map(([role, count]) => ({
+      role,
+      count,
+      fullMark: 6,
+    }));
+
+    const statsComparison = selectedPlayers.map(player => ({
+      subject: player.name.split(' ').pop(),
+      A: player.points,
+      B: player.credits * 25,
+      fullMark: 350,
+    }));
+
+    return (
+      <div className="space-y-6 mt-6">
+        <Card className="p-6 bg-gradient-to-br from-card to-card/80">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-gradient-to-br from-primary to-accent p-3 rounded-lg">
+              <BarChart3 className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-foreground">Team Analytics</h3>
+              <p className="text-muted-foreground">Performance insights for your selected team</p>
+            </div>
+          </div>
+
+          <Tabs defaultValue="performance" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="distribution">Role Distribution</TabsTrigger>
+              <TabsTrigger value="comparison">Player Comparison</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="performance" className="mt-6">
+              <div className="bg-background/50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  Player Points vs Credits Analysis
+                </h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={playerPerformanceData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                    <YAxis stroke="hsl(var(--foreground))" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="points" fill="hsl(var(--primary))" name="Points" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="credits" fill="hsl(var(--secondary))" name="Credits (x20)" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="distribution" className="mt-6">
+              <div className="bg-background/50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-foreground mb-4">Team Role Balance</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RadarChart data={roleData}>
+                    <PolarGrid stroke="hsl(var(--border))" />
+                    <PolarAngleAxis dataKey="role" stroke="hsl(var(--foreground))" />
+                    <PolarRadiusAxis stroke="hsl(var(--foreground))" />
+                    <Radar name="Players" dataKey="count" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="comparison" className="mt-6">
+              <div className="bg-background/50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-foreground mb-4">Player Stats Radar</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RadarChart data={statsComparison}>
+                    <PolarGrid stroke="hsl(var(--border))" />
+                    <PolarAngleAxis dataKey="subject" stroke="hsl(var(--foreground))" />
+                    <PolarRadiusAxis stroke="hsl(var(--foreground))" />
+                    <Radar name="Points" dataKey="A" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
+                    <Radar name="Value" dataKey="B" stroke="hsl(var(--secondary))" fill="hsl(var(--secondary))" fillOpacity={0.6} />
+                    <Legend />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <Card className="p-4 bg-primary/10 border-primary/20">
+              <div className="text-sm text-muted-foreground mb-1">Total Players</div>
+              <div className="text-2xl font-bold text-primary">{selectedPlayers.length}</div>
+            </Card>
+            <Card className="p-4 bg-secondary/10 border-secondary/20">
+              <div className="text-sm text-muted-foreground mb-1">Average Points</div>
+              <div className="text-2xl font-bold text-secondary">
+                {(selectedPlayers.reduce((sum, p) => sum + p.points, 0) / selectedPlayers.length).toFixed(0)}
+              </div>
+            </Card>
+            <Card className="p-4 bg-accent/10 border-accent/20">
+              <div className="text-sm text-muted-foreground mb-1">Total Credits</div>
+              <div className="text-2xl font-bold text-accent">{totalCredits.toFixed(1)}</div>
+            </Card>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <Button variant="hero" onClick={() => navigate("/dashboard")} className="flex-1">
+              <Trophy className="w-4 h-4 mr-2" />
+              Go to Dashboard
+            </Button>
+            <Button variant="outline" onClick={() => setHasJoined(false)} className="flex-1">
+              Join Another Match
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  };
+
+  if (hasJoined) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="p-6 mb-6 bg-gradient-to-br from-primary/10 via-card to-secondary/10">
+            <div className="text-center mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full mb-4">
+                <Trophy className="w-8 h-8 text-primary-foreground" />
+              </div>
+              <h2 className="text-3xl font-bold text-foreground mb-2">Successfully Joined!</h2>
+              <p className="text-muted-foreground">Your team has been registered for {matchData.team1.name} vs {matchData.team2.name}</p>
+            </div>
+          </Card>
+          <PlayerAnalysis />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
